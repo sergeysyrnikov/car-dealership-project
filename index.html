@@ -1,6 +1,9 @@
 <section class="vb-n2h" id="vb-n2h" data-section-name="Навигация" aria-label="Основная навигация" data-vibeblock-unique-section="yes">
     <style>
     .vb-n2h, .vb-n2h *{box-sizing:border-box;}
+    /* защита от горизонтального увода страницы на мобильных (clip не ломает плавный скролл) */
+    html, body{overflow-x:clip; max-width:100%;}
+    @supports not (overflow-x: clip){ html, body{overflow-x:hidden;} }
     .vb-n2h, .vb-n2h input, .vb-n2h textarea, .vb-n2h select{font:inherit;}
     .vb-n2h{
       --acc:#3E8EF7; --acc-hi:#6FB0FF; --bg:#16181B; --line:#2C3138; --text:#F2F4F6; --muted:#A6ADB5;
