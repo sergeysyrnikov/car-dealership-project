@@ -4,6 +4,10 @@
     /* защита от горизонтального увода страницы на мобильных (clip не ломает плавный скролл) */
     html, body{overflow-x:clip; max-width:100%;}
     @supports not (overflow-x: clip){ html, body{overflow-x:hidden;} }
+    /* ресет внешних отступов страницы и секций */
+    body{margin:0 !important; padding:0 !important;}
+    section{margin:0 !important;}
+    .vb-n2h{margin:0 !important;}
     .vb-n2h, .vb-n2h input, .vb-n2h textarea, .vb-n2h select{font:inherit;}
     .vb-n2h{
       --acc:#3E8EF7; --acc-hi:#6FB0FF; --bg:#16181B; --line:#2C3138; --text:#F2F4F6; --muted:#A6ADB5;
@@ -118,6 +122,30 @@
       });
       // страховка: на загрузке/возврате на страницу скролл тела не заблокирован
       window.addEventListener('pageshow', function(){ document.body.style.overflow=''; });
+
+      // защита от горизонтального увода страницы: если окно сместилось вбок — возвращаем
+      window.addEventListener('scroll', function(){
+        if(window.scrollX !== 0){ window.scrollTo(0, window.pageYOffset); }
+      }, {passive:true});
+      window.addEventListener('resize', function(){
+        if(window.scrollX !== 0){ window.scrollTo(0, window.pageYOffset); }
+      });
+
+      // диагностика: выводит в консоль элементы, вылезающие за ширину экрана
+      // (открой консоль F12, чтобы найти виновника)
+      window.addEventListener('load', function(){
+        setTimeout(function(){
+          var vw = document.documentElement.clientWidth;
+          var bad = [];
+          document.querySelectorAll('*').forEach(function(el){
+            var r = el.getBoundingClientRect();
+            if(r.width > 1 && (r.right > vw + 4 || r.left < -4) && getComputedStyle(el).position !== 'fixed'){
+              bad.push(el.tagName + '.' + String(el.className).split(' ')[0] + ' | left:' + Math.round(r.left) + ' right:' + Math.round(r.right) + ' w:' + Math.round(r.width));
+            }
+          });
+          if(bad.length){ console.warn('[Гараж42] Элементы шире экрана:', bad.slice(0, 12)); }
+        }, 800);
+      });
     
       // Делегированный обработчик для ВСЕХ якорных ссылок на странице,
       // с перехватом раньше скриптов Tilda, чтобы секции приезжали
