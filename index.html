@@ -60,6 +60,18 @@
       .vb-n2h__bar{height:60px;}
       .vb-n2h__menu{inset:60px 0 0 0;}
       .vb-n2h__logo{font-size:14px;}
+      /* уплотнённое меню: все пункты влезают без скролла */
+      .vb-n2h__menu{padding:14px 20px 24px; gap:0;}
+      .vb-n2h__link{font-size:17px; padding:11px 0;}
+      .vb-n2h__mobile{margin-top:12px; gap:10px;}
+      .vb-n2h__mobile .vb-n2h__phone{font-size:16px;}
+      .vb-n2h__mobile .vb-btn{height:46px; font-size:13.5px;}
+    }
+    /* совсем невысокие экраны — ещё компактнее */
+    @media (max-width:640px) and (max-height:600px){
+      .vb-n2h__menu{padding:10px 20px 16px;}
+      .vb-n2h__link{font-size:15.5px; padding:9px 0;}
+      .vb-n2h__mobile{margin-top:8px; gap:8px;}
     }
     </style>
     <div class="vb-n2h__bar">
@@ -191,6 +203,26 @@
         try { history.replaceState(null, '', id); } catch(err){}
         target.setAttribute('tabindex','-1');
         try { target.focus({preventScroll:true}); } catch(err){}
+        // диагностика после перехода: реальные координаты секций
+        setTimeout(function(){
+          var rects = [];
+          document.querySelectorAll('section[id^="vb-"]').forEach(function(s){
+            var r = s.getBoundingClientRect();
+            rects.push({ el: s, id: s.id, top: r.top, bottom: r.bottom });
+          });
+          rects.sort(function(a, b){ return a.top - b.top; });
+          var overlaps = [];
+          for(var i = 1; i < rects.length; i++){
+            if(rects[i].top < rects[i-1].bottom - 2){
+              overlaps.push(rects[i-1].id + ' перекрывает ' + rects[i].id + ' на ' + Math.round(rects[i-1].bottom - rects[i].top) + 'px');
+            }
+          }
+          if(overlaps.length){
+            console.warn('[Гараж42] Секции реально пересекаются в layout:', overlaps);
+          } else {
+            console.info('[Гараж42] Layout в порядке, секции не пересекаются. Если на экране наложение — это артефакт отрисовки эмулятора.');
+          }
+        }, 1200);
       }, true);
     })();
     </script>
