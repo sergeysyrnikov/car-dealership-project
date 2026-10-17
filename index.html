@@ -149,10 +149,28 @@
     
       // Делегированный обработчик для ВСЕХ якорных ссылок на странице,
       // с перехватом раньше скриптов Tilda, чтобы секции приезжали
-      // с учётом фиксированной шапки.
+      // с учётом фиксированной шапки (нашей и шапки Tilda, если есть).
+      var extraHeader = 0;
+      function measureExtraHeader(){
+        // ищем чужие фиксированные панели, прижатые к верху экрана (шапка Tilda)
+        var maxBottom = 0;
+        document.querySelectorAll('body *').forEach(function(el){
+          if(root.contains(el) || el === root) return;
+          var cs = getComputedStyle(el);
+          if((cs.position === 'fixed' || cs.position === 'sticky') && el.offsetHeight > 0){
+            var r = el.getBoundingClientRect();
+            if(r.top <= 4 && r.height > 20 && r.height < 300 && r.width > window.innerWidth * 0.5){
+              if(r.bottom > maxBottom) maxBottom = r.bottom;
+            }
+          }
+        });
+        extraHeader = Math.round(maxBottom);
+        if(extraHeader) console.info('[Гараж42] Обнаружена дополнительная шапка высотой ' + extraHeader + 'px');
+      }
+      window.addEventListener('load', function(){ setTimeout(measureExtraHeader, 500); });
       function scrollToAnchor(target, id){
-        var offset = bar ? bar.offsetHeight : 72;
-        var exact = target.getBoundingClientRect().top + window.pageYOffset - offset - 10;
+        var offset = (bar ? bar.offsetHeight : 72) + extraHeader + 10;
+        var exact = target.getBoundingClientRect().top + window.pageYOffset - offset;
         if(exact < 0) exact = 0;
         window.scrollTo({ top: exact, behavior: 'smooth' });
         try { history.replaceState(null, '', id); } catch(err){}
@@ -161,9 +179,9 @@
         // доводка: если чужой скрипт (Tilda) переехал в свою позицию —
         // мгновенно доскролливаем ровно к нужному отступу
         setTimeout(function(){
-          var diff = target.getBoundingClientRect().top - (offset + 10);
+          var diff = target.getBoundingClientRect().top - offset;
           if(Math.abs(diff) > 2){
-            var fix = target.getBoundingClientRect().top + window.pageYOffset - offset - 10;
+            var fix = target.getBoundingClientRect().top + window.pageYOffset - offset;
             window.scrollTo({ top: Math.max(0, fix), behavior: 'auto' });
           }
         }, 900);
