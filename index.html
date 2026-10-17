@@ -45,8 +45,9 @@
       .vb-n2h__side{display:none;}
       .vb-n2h__burger{display:block;}
       .vb-n2h__menu{
-        position:fixed; inset:64px 0 0 0; margin:0; padding:28px 20px 40px; background:var(--bg);
-        flex-direction:column; align-items:flex-start; gap:6px; overflow-y:auto;
+        position:fixed !important; top:64px !important; left:0 !important; right:0 !important; bottom:0 !important;
+        margin:0 !important; padding:28px 20px 40px !important; background:var(--bg) !important;
+        flex-direction:column !important; align-items:flex-start !important; gap:6px !important; overflow-y:auto !important;
         opacity:0; visibility:hidden; transform:translateY(-8px);
         transition:opacity .25s ease, transform .25s ease, visibility .25s;
       }
@@ -58,10 +59,10 @@
     @media (min-width:1101px){ .vb-n2h__mobile{display:none;} }
     @media (max-width:640px){
       .vb-n2h__bar{height:60px;}
-      .vb-n2h__menu{inset:60px 0 0 0;}
+      .vb-n2h__menu{top:60px !important;}
       .vb-n2h__logo{font-size:14px;}
       /* уплотнённое меню: все пункты влезают без скролла */
-      .vb-n2h__menu{padding:14px 20px 24px; gap:0;}
+      .vb-n2h__menu{padding:14px 20px 24px !important; gap:0 !important;}
       .vb-n2h__link{font-size:17px; padding:11px 0;}
       .vb-n2h__mobile{margin-top:12px; gap:10px;}
       .vb-n2h__mobile .vb-n2h__phone{font-size:16px;}
