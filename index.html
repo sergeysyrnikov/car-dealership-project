@@ -169,7 +169,7 @@
       }
       window.addEventListener('load', function(){ setTimeout(measureExtraHeader, 500); });
       function scrollToAnchor(target, id){
-        var offset = (bar ? bar.offsetHeight : 72) + extraHeader + 20;
+        var offset = (bar ? bar.offsetHeight : 72) + extraHeader;
         var exact = target.getBoundingClientRect().top + window.pageYOffset - offset;
         if(exact < 0) exact = 0;
         window.scrollTo({ top: exact, behavior: 'smooth' });
