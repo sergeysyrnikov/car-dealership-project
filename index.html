@@ -20,7 +20,7 @@
     .vb-n2h__side{display:flex; align-items:center; gap:16px;}
     .vb-n2h__phone{color:var(--text); text-decoration:none; font-weight:700; font-size:15px; letter-spacing:.01em; white-space:nowrap;}
     .vb-n2h__phone:hover{color:var(--acc);}
-    .vb-n2h .vb-btn{display:inline-flex; align-items:center; justify-content:center; gap:10px; text-decoration:none; border-radius:2px; border:1px solid transparent; cursor:pointer; font-family:var(--f-text); font-weight:700; letter-spacing:.03em; line-height:1; transition:background-color .22s ease, border-color .22s ease, color .22s ease, transform .22s ease;}
+    .vb-n2h .vb-btn{display:inline-flex; align-items:center; justify-content:center; gap:10px; height:44px; padding:0 22px; text-decoration:none; border-radius:2px; border:1px solid transparent; cursor:pointer; font-family:var(--f-text); font-weight:700; font-size:14px; letter-spacing:.03em; line-height:1; white-space:nowrap; transition:background-color .22s ease, border-color .22s ease, color .22s ease, transform .22s ease;}
     .vb-n2h .vb-btn .t-btnflex__text{color:inherit; font-family:inherit;}
     .vb-n2h .vb-btn--solid{background:var(--acc); color:#16181B;}
     .vb-n2h .vb-btn--solid .t-btnflex__text{color:#16181B;}
@@ -83,7 +83,7 @@
       if(!root) return;
       var bar = root.querySelector('.vb-n2h__bar');
       var burger = root.querySelector('.vb-n2h__burger');
-      var links = root.querySelectorAll('a[href^="#"]');
+      var links = null;
       var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     
       function onScroll(){
@@ -127,6 +127,27 @@
           try { target.focus({preventScroll:true}); } catch(err){}
         });
       });
+
+      // Делегированный обработчик для ВСЕХ якорных ссылок на странице
+      // (hero-кнопки, футер и т.д.), с перехватом раньше скриптов Tilda,
+      // чтобы секции приезжали с учётом фиксированной шапки.
+      document.addEventListener('click', function(e){
+        var link = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+        if(!link) return;
+        if(root.contains(link)) return; // ссылки шапки уже обработаны выше
+        var id = link.getAttribute('href');
+        if(!id || id === '#' || id.length < 2) return;
+        var target = document.querySelector(id);
+        if(!target) return;
+        e.preventDefault();
+        e.stopPropagation();
+        var offset = bar ? bar.offsetHeight : 72;
+        var top = target.getBoundingClientRect().top + window.pageYOffset - offset - 10;
+        window.scrollTo({ top: top < 0 ? 0 : top, behavior: reduce ? 'auto' : 'smooth' });
+        try { history.replaceState(null, '', id); } catch(err){}
+        target.setAttribute('tabindex','-1');
+        try { target.focus({preventScroll:true}); } catch(err){}
+      }, true);
     })();
     </script>
     </section>
@@ -630,7 +651,9 @@
     .vb-g3p__arrow:hover{border-color:var(--acc); color:var(--acc);}
     .vb-g3p__arrow:focus-visible{outline:2px solid var(--acc); outline-offset:2px;}
     .vb-g3p__arrow svg{width:20px; height:20px;}
-    .vb-g3p__track{display:flex; gap:22px; overflow-x:auto; scroll-snap-type:x mandatory; padding:2px 2px 14px; scrollbar-width:none;}
+    .vb-g3p__track{display:flex; gap:22px; overflow-x:auto; scroll-snap-type:x mandatory; padding:2px 2px 14px; scrollbar-width:none; cursor:grab; user-select:none; -webkit-user-select:none;}
+    .vb-g3p__track.is-dragging{cursor:grabbing; scroll-snap-type:none;}
+    .vb-g3p__track.is-dragging .vb-g3p__card{pointer-events:none;}
     .vb-g3p__track::-webkit-scrollbar{display:none;}
     .vb-g3p__card{flex:0 0 min(900px,86vw); scroll-snap-align:start; background:var(--panel); border:1px solid var(--line); transition:border-color .28s ease;}
     .vb-g3p__card:hover{border-color:#454C55;}
@@ -761,6 +784,35 @@
           track.scrollBy({ left: step * dir, behavior: reduce ? 'auto' : 'smooth' });
         });
       });
+
+      // Перетаскивание слайдера мышкой (drag-to-scroll).
+      // На тач-устройствах нативная прокрутка работает сама, поэтому
+      // обработчики мыши на пальцы не влияют.
+      var isDown = false, startX = 0, startScroll = 0, moved = false;
+      track.addEventListener('mousedown', function(e){
+        if(e.button !== 0) return;
+        // не мешаем выделять текст и кликать по ссылкам внутри карточек
+        if(e.target.closest && e.target.closest('a')) return;
+        isDown = true; moved = false;
+        startX = e.pageX; startScroll = track.scrollLeft;
+        track.classList.add('is-dragging');
+      });
+      window.addEventListener('mousemove', function(e){
+        if(!isDown) return;
+        var dx = e.pageX - startX;
+        if(Math.abs(dx) > 4) moved = true;
+        track.scrollLeft = startScroll - dx;
+      });
+      window.addEventListener('mouseup', function(){
+        if(!isDown) return;
+        isDown = false;
+        track.classList.remove('is-dragging');
+      });
+      // подавляем случайный клик после перетаскивания
+      track.addEventListener('click', function(e){
+        if(moved){ e.preventDefault(); e.stopPropagation(); moved = false; }
+      }, true);
+      track.addEventListener('dragstart', function(e){ e.preventDefault(); });
     
       var items = root.querySelectorAll('[data-reveal]');
       if(!items.length) return;
