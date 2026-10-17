@@ -150,6 +150,24 @@
       // Делегированный обработчик для ВСЕХ якорных ссылок на странице,
       // с перехватом раньше скриптов Tilda, чтобы секции приезжали
       // с учётом фиксированной шапки.
+      function scrollToAnchor(target, id){
+        var offset = bar ? bar.offsetHeight : 72;
+        var exact = target.getBoundingClientRect().top + window.pageYOffset - offset - 10;
+        if(exact < 0) exact = 0;
+        window.scrollTo({ top: exact, behavior: 'smooth' });
+        try { history.replaceState(null, '', id); } catch(err){}
+        target.setAttribute('tabindex','-1');
+        try { target.focus({preventScroll:true}); } catch(err){}
+        // доводка: если чужой скрипт (Tilda) переехал в свою позицию —
+        // мгновенно доскролливаем ровно к нужному отступу
+        setTimeout(function(){
+          var diff = target.getBoundingClientRect().top - (offset + 10);
+          if(Math.abs(diff) > 2){
+            var fix = target.getBoundingClientRect().top + window.pageYOffset - offset - 10;
+            window.scrollTo({ top: Math.max(0, fix), behavior: 'auto' });
+          }
+        }, 900);
+      }
       document.addEventListener('click', function(e){
         var link = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
         if(!link) return;
@@ -160,12 +178,7 @@
         e.preventDefault();
         e.stopPropagation();
         closeMenu();
-        var offset = bar ? bar.offsetHeight : 72;
-        var top = target.getBoundingClientRect().top + window.pageYOffset - offset - 10;
-        window.scrollTo({ top: top < 0 ? 0 : top, behavior: 'smooth' });
-        try { history.replaceState(null, '', id); } catch(err){}
-        target.setAttribute('tabindex','-1');
-        try { target.focus({preventScroll:true}); } catch(err){}
+        scrollToAnchor(target, id);
       }, true);
     })();
     </script>
